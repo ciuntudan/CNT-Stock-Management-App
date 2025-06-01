@@ -287,6 +287,7 @@ class MainWindow(QMainWindow):
         self.setMinimumSize(1200, 800)
         self.setStyleSheet(STYLES['main_window'])
         self.setWindowIcon(QIcon("favicon.png"))  # Set window icon
+        self.showMaximized()  # Make window start maximized
         
         # Create central widget with horizontal layout
         central_widget = QWidget()
@@ -352,7 +353,7 @@ class MainWindow(QMainWindow):
             ("Comenzi", self.show_orders_page),
             ("Angajati", self.show_customers_page),
             ("Furnizori", self.show_suppliers_page),
-            ("Reports", self.show_reports_page),
+            ("Rapoarte", self.show_reports_page),
         ]
         
         button_group = QButtonGroup(self)
