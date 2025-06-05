@@ -1,9 +1,97 @@
+# Python
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
-.vscode/
-venv/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Database files
 *.db
+*.sqlite
+*.sqlite3
+
+# Virtual Environment
+venv/
+ENV/
+env/
+.env/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Logs and databases
 *.log
+*.sql
+*.sqlite
+
+# OS generated files
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Large media files
+*.mp4
+*.tiff
+*.avi
+*.flv
+*.mov
+*.wmv
+*.pdf
+*.psd
+*.ai
+*.eps
+
+# Compiled files
+*.com
+*.class
+*.dll
+*.exe
+*.o
+*.so
+
+# Packages
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+
+# Large image files (over 100MB)
+*.jpg
+*.jpeg
+*.png
+*.gif
+*.ico
+*.svg
+
+# Specific large files
+dist/main.exe
+build/main/main.pkg
+venv/Lib/site-packages/numpy.libs/
+build/
+dist/
