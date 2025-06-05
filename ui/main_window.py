@@ -26,7 +26,8 @@ COLORS = {
     'danger': '#F44336',       # Red
     'light': '#FAFAFA',       # Almost White
     'dark': '#212121',        # Almost Black
-    'gray': '#9E9E9E'         # Medium Gray
+    'gray': '#9E9E9E',         # Medium Gray
+    'title_bar': '#2C3E50'    # Dark Blue for title bar
 }
 
 STYLES = {
@@ -51,6 +52,27 @@ STYLES = {
         }
         QTableWidget {
             font-size: 14px;
+        }
+        QMenuBar {
+            background-color: ''' + COLORS['title_bar'] + ''';
+            color: white;
+        }
+        QMenuBar::item {
+            background-color: transparent;
+            padding: 8px 12px;
+            color: white;
+        }
+        QMenuBar::item:selected {
+            background-color: #34495E;
+        }
+        QTitleBar {
+            background-color: ''' + COLORS['title_bar'] + ''';
+            color: white;
+        }
+        QMainWindow::title {
+            background-color: ''' + COLORS['title_bar'] + ''';
+            color: white;
+            height: 35px;
         }
     ''',
     'search_input': '''
@@ -285,6 +307,11 @@ class MainWindow(QMainWindow):
     def setup_ui(self):
         self.setWindowTitle("CNT Stock Management")
         self.setMinimumSize(1200, 800)
+        
+        # Set window flags for custom title bar
+        self.setWindowFlags(Qt.Window | Qt.CustomizeWindowHint | Qt.WindowSystemMenuHint | Qt.WindowMinMaxButtonsHint | Qt.WindowCloseButtonHint)
+        
+        # Set the stylesheet including title bar styling
         self.setStyleSheet(STYLES['main_window'])
         self.setWindowIcon(QIcon("favicon.png"))  # Set window icon
         self.showMaximized()  # Make window start maximized
@@ -523,7 +550,7 @@ class MainWindow(QMainWindow):
         self.price_label = QLabel("Pret fara TVA:")
         self.calc_price_input = QDoubleSpinBox()
         self.calc_price_input.setMaximum(999999.99)
-        self.calc_price_input.setSuffix(" RON")
+        self.calc_price_input.setSuffix(" LEI")
         self.calc_price_input.valueChanged.connect(self.update_vat_calculation)
         price_layout.addWidget(self.price_label)
         price_layout.addWidget(self.calc_price_input)
@@ -549,19 +576,19 @@ class MainWindow(QMainWindow):
         
         # Without VAT
         results_layout.addWidget(QLabel("Pret fara TVA:"), 0, 0)
-        self.price_without_vat = QLabel("0.00 RON")
+        self.price_without_vat = QLabel("0.00 LEI")
         self.price_without_vat.setStyleSheet("font-weight: bold;")
         results_layout.addWidget(self.price_without_vat, 0, 1)
         
         # VAT amount
         results_layout.addWidget(QLabel("Valoare TVA (19%):"), 1, 0)
-        self.vat_amount = QLabel("0.00 RON")
+        self.vat_amount = QLabel("0.00 LEI")
         self.vat_amount.setStyleSheet("font-weight: bold;")
         results_layout.addWidget(self.vat_amount, 1, 1)
         
         # Total with VAT
         results_layout.addWidget(QLabel("Pret total cu TVA:"), 2, 0)
-        self.total_with_vat = QLabel("0.00 RON")
+        self.total_with_vat = QLabel("0.00 LEI")
         self.total_with_vat.setStyleSheet("font-weight: bold; color: #2980B9;")
         results_layout.addWidget(self.total_with_vat, 2, 1)
         
@@ -621,9 +648,9 @@ class MainWindow(QMainWindow):
             vat = total_without_vat * 0.19
             total_with_vat = total_without_vat + vat
         
-        self.price_without_vat.setText(f"{total_without_vat:.2f} RON")
-        self.vat_amount.setText(f"{vat:.2f} RON")
-        self.total_with_vat.setText(f"{total_with_vat:.2f} RON")
+        self.price_without_vat.setText(f"{total_without_vat:.2f} LEI")
+        self.vat_amount.setText(f"{vat:.2f} LEI")
+        self.total_with_vat.setText(f"{total_with_vat:.2f} LEI")
     
     def show_home_page(self):
         self.pages.setCurrentWidget(self.home_page)
@@ -662,9 +689,9 @@ class MainWindow(QMainWindow):
             total_value += value
             total_value_no_vat += value_no_vat
         
-        self.home_total_value_label.setText(f"{total_value:.2f} RON")
-        self.home_total_value_no_vat_label.setText(f"{total_value_no_vat:.2f} RON")
-        self.home_total_vat_label.setText(f"{(total_value - total_value_no_vat):.2f} RON")
+        self.home_total_value_label.setText(f"{total_value:.2f} LEI")
+        self.home_total_value_no_vat_label.setText(f"{total_value_no_vat:.2f} LEI")
+        self.home_total_vat_label.setText(f"{(total_value - total_value_no_vat):.2f} LEI")
     
     def create_inventory_page(self):
         page = QWidget()
@@ -727,10 +754,10 @@ class MainWindow(QMainWindow):
         table_layout = QVBoxLayout(table_frame)
         
         self.product_table = QTableWidget()
-        self.product_table.setColumnCount(9)
+        self.product_table.setColumnCount(11)  # Updated column count
         self.product_table.setHorizontalHeaderLabels([
-            "ID", "Nume", "Categorie", "Cantitate", "Unitate", "Pret unitar(RON)",
-            "Pret fara TVA", "Dimensiuni", "Prag minim"
+            "ID", "Nume", "Categorie", "Cantitate", "Unitate", "Pret unitar(LEI)",
+            "Pret fara TVA", "Total cu TVA", "Total fara TVA", "Dimensiuni", "Prag minim"
         ])
         self.product_table.setStyleSheet(STYLES['table'])
         self.product_table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
@@ -819,8 +846,10 @@ class MainWindow(QMainWindow):
             row = self.product_table.rowCount()
             self.product_table.insertRow(row)
             
-            # Calculate price without VAT
+            # Calculate prices
             price_without_vat = product.unit_price / 1.19
+            total_with_vat = product.unit_price * product.quantity
+            total_without_vat = price_without_vat * product.quantity
             
             # Format dimensions if they exist
             dimensions = ""
@@ -838,8 +867,10 @@ class MainWindow(QMainWindow):
                 QTableWidgetItem(product.category.name if product.category else ""),
                 QTableWidgetItem(str(product.quantity)),
                 QTableWidgetItem(product.measure_unit.value),
-                QTableWidgetItem(f"{product.unit_price:.2f} RON"),
-                QTableWidgetItem(f"{price_without_vat:.2f} RON"),
+                QTableWidgetItem(f"{product.unit_price:.2f} LEI"),
+                QTableWidgetItem(f"{price_without_vat:.2f} LEI"),
+                QTableWidgetItem(f"{total_with_vat:.2f} LEI"),
+                QTableWidgetItem(f"{total_without_vat:.2f} LEI"),
                 QTableWidgetItem(dimensions),
                 QTableWidgetItem(str(product.alert_threshold))
             ]
@@ -850,6 +881,9 @@ class MainWindow(QMainWindow):
                 if col == 3 and product.quantity <= product.alert_threshold:
                     item.setForeground(QColor(COLORS['danger']))
                     item.setFont(QFont("", -1, QFont.Bold))
+                # Highlight total columns
+                if col in [7, 8]:  # Total columns
+                    item.setBackground(QColor("#E3F2FD"))
                 self.product_table.setItem(row, col, item)
     
     def search_products(self):
@@ -865,8 +899,10 @@ class MainWindow(QMainWindow):
             row = self.product_table.rowCount()
             self.product_table.insertRow(row)
             
-            # Calculate price without VAT
+            # Calculate prices
             price_without_vat = product.unit_price / 1.19
+            total_with_vat = product.unit_price * product.quantity
+            total_without_vat = price_without_vat * product.quantity
             
             # Format dimensions if they exist
             dimensions = ""
@@ -883,8 +919,10 @@ class MainWindow(QMainWindow):
                 QTableWidgetItem(product.category.name if product.category else ""),
                 QTableWidgetItem(str(product.quantity)),
                 QTableWidgetItem(product.measure_unit.value),
-                QTableWidgetItem(f"{product.unit_price:.2f} RON"),
-                QTableWidgetItem(f"{price_without_vat:.2f} RON"),
+                QTableWidgetItem(f"{product.unit_price:.2f} LEI"),
+                QTableWidgetItem(f"{price_without_vat:.2f} LEI"),
+                QTableWidgetItem(f"{total_with_vat:.2f} LEI"),
+                QTableWidgetItem(f"{total_without_vat:.2f} LEI"),
                 QTableWidgetItem(dimensions),
                 QTableWidgetItem(str(product.alert_threshold))
             ]
@@ -894,6 +932,9 @@ class MainWindow(QMainWindow):
                 if col == 3 and product.quantity <= product.alert_threshold:
                     item.setForeground(QColor(COLORS['danger']))
                     item.setFont(QFont("", -1, QFont.Bold))
+                # Highlight total columns
+                if col in [7, 8]:  # Total columns
+                    item.setBackground(QColor("#E3F2FD"))
                 self.product_table.setItem(row, col, item)
     
     def add_product(self):
@@ -1171,7 +1212,8 @@ class ProductDialog(QDialog):
         price_label = QLabel("Pret unitar (cu TVA):")
         self.price_input = QDoubleSpinBox()
         self.price_input.setMaximum(999999.99)
-        self.price_input.setSuffix(" RON")
+        self.price_input.setSuffix(" LEI")
+        self.price_input.valueChanged.connect(self.update_vat_calculation)
         price_layout.addWidget(price_label)
         price_layout.addWidget(self.price_input)
         form_layout3.addLayout(price_layout)
@@ -1572,22 +1614,22 @@ class ReportsPage(QWidget):
         
         if all_prices:
             avg_price = sum(price for _, price in all_prices) / len(all_prices)
-            self.avg_price_label.setText(f"{avg_price:.2f} RON")
+            self.avg_price_label.setText(f"{avg_price:.2f} LEI")
             
             most_expensive = max(all_prices, key=lambda x: x[1])
             least_expensive = min(all_prices, key=lambda x: x[1])
             
-            self.most_expensive_label.setText(f"{most_expensive[0]} ({most_expensive[1]:.2f} RON)")
-            self.least_expensive_label.setText(f"{least_expensive[0]} ({least_expensive[1]:.2f} RON)")
+            self.most_expensive_label.setText(f"{most_expensive[0]} ({most_expensive[1]:.2f} LEI)")
+            self.least_expensive_label.setText(f"{least_expensive[0]} ({least_expensive[1]:.2f} LEI)")
         else:
-            self.avg_price_label.setText("0.00 RON")
+            self.avg_price_label.setText("0.00 LEI")
             self.most_expensive_label.setText("N/A")
             self.least_expensive_label.setText("N/A")
         
         # Update total values
-        self.total_value_label.setText(f"{total_value:.2f} RON")
-        self.total_value_no_vat_label.setText(f"{total_value_no_vat:.2f} RON")
-        self.total_vat_label.setText(f"{(total_value - total_value_no_vat):.2f} RON")
+        self.total_value_label.setText(f"{total_value:.2f} LEI")
+        self.total_value_no_vat_label.setText(f"{total_value_no_vat:.2f} LEI")
+        self.total_vat_label.setText(f"{(total_value - total_value_no_vat):.2f} LEI")
         
         # Create category value chart
         self.update_category_chart(categories)
@@ -1624,7 +1666,7 @@ class ReportsPage(QWidget):
             progress = QProgressBar()
             progress.setMaximum(100)
             progress.setValue(int(percentage))
-            progress.setFormat(f"{percentage:.1f}% ({data['value']:.2f} RON)")
+            progress.setFormat(f"{percentage:.1f}% ({data['value']:.2f} LEI)")
             progress.setStyleSheet('''
                 QProgressBar {
                     border: 2px solid #E0E0E0;
@@ -1732,9 +1774,9 @@ class ReportsPage(QWidget):
             
             items = [
                 QTableWidgetItem(category),
-                QTableWidgetItem(f"{avg_price:.2f} RON"),
-                QTableWidgetItem(f"{min_price:.2f} RON"),
-                QTableWidgetItem(f"{max_price:.2f} RON")
+                QTableWidgetItem(f"{avg_price:.2f} LEI"),
+                QTableWidgetItem(f"{min_price:.2f} LEI"),
+                QTableWidgetItem(f"{max_price:.2f} LEI")
             ]
             
             for col, item in enumerate(items):

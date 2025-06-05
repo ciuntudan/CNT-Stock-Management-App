@@ -4,6 +4,7 @@ from PyQt5.QtWidgets import QApplication
 from PyQt5.QtGui import QIcon
 from ui.main_window import MainWindow
 from database.models import init_db
+from utils.pdf_generator import generate_invoice_pdf
 
 def main():
     # Create database directory if it doesn't exist

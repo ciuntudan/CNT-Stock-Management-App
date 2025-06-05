@@ -201,14 +201,16 @@ def get_price_history(product_id):
     return history
 
 # Customer operations
-def add_customer(name, email=None, phone=None, address=None, company_name=None):
+def add_customer(name, address=None, registration_number=None, trade_register_number=None, 
+                bank_account=None, bank_name=None):
     session = get_session()
     customer = Customer(
         name=name,
-        email=email,
-        phone=phone,
         address=address,
-        company_name=company_name
+        registration_number=registration_number,
+        trade_register_number=trade_register_number,
+        bank_account=bank_account,
+        bank_name=bank_name
     )
     session.add(customer)
     session.commit()
@@ -220,6 +222,35 @@ def get_all_customers():
     customers = session.query(Customer).all()
     session.close()
     return customers
+
+def update_customer(customer_id, name=None, address=None, registration_number=None, 
+                   trade_register_number=None, bank_account=None, bank_name=None):
+    session = get_session()
+    customer = session.query(Customer).filter(Customer.id == customer_id).first()
+    if customer:
+        if name is not None:
+            customer.name = name
+        if address is not None:
+            customer.address = address
+        if registration_number is not None:
+            customer.registration_number = registration_number
+        if trade_register_number is not None:
+            customer.trade_register_number = trade_register_number
+        if bank_account is not None:
+            customer.bank_account = bank_account
+        if bank_name is not None:
+            customer.bank_name = bank_name
+        session.commit()
+    session.close()
+    return customer
+
+def delete_customer(customer_id):
+    session = get_session()
+    customer = session.query(Customer).filter(Customer.id == customer_id).first()
+    if customer:
+        session.delete(customer)
+        session.commit()
+    session.close()
 
 # Sales Order operations
 def create_sales_order(customer_id, items, notes=None, created_by_id=None):
@@ -334,4 +365,125 @@ def receive_purchase_order(order_id, received_by_id):
         
         session.commit()
     session.close()
-    return order 
+    return order
+
+# Company operations
+def add_company(name, registration_number=None, vat_number=None, address=None, 
+               bank_name=None, bank_account=None, phone=None, email=None):
+    session = get_session()
+    company = Company(
+        name=name,
+        registration_number=registration_number,
+        vat_number=vat_number,
+        address=address,
+        bank_name=bank_name,
+        bank_account=bank_account,
+        phone=phone,
+        email=email
+    )
+    session.add(company)
+    session.commit()
+    session.close()
+    return company
+
+def get_all_companies():
+    session = get_session()
+    companies = session.query(Company).filter(Company.is_active == 1).all()
+    session.close()
+    return companies
+
+def get_company(company_id):
+    session = get_session()
+    company = session.query(Company).filter(Company.id == company_id).first()
+    session.close()
+    return company
+
+# Invoice functionality will be implemented in a future update
+# def create_invoice(issuer_id, customer_id, items, series):
+#     session = get_session()
+#     year = datetime.now().year
+#     
+#     try:
+#         # Get or create invoice series
+#         invoice_series = session.query(InvoiceSeries).filter(
+#             InvoiceSeries.company_id == issuer_id,
+#             InvoiceSeries.series == series,
+#             InvoiceSeries.year == year
+#         ).first()
+#         
+#         if not invoice_series:
+#             invoice_series = InvoiceSeries(
+#                 company_id=issuer_id,
+#                 series=series,
+#                 year=year,
+#                 last_number=0
+#             )
+#             session.add(invoice_series)
+#             session.flush()
+#         
+#         # Increment number
+#         invoice_series.last_number += 1
+#         number = invoice_series.last_number
+#         
+#         # Calculate totals
+#         subtotal = sum(item['quantity'] * item['unit_price'] for item in items)
+#         vat_amount = subtotal * 0.19
+#         total = subtotal + vat_amount
+#         
+#         # Create invoice
+#         invoice = Invoice(
+#             series=series,
+#             number=number,
+#             issuer_id=issuer_id,
+#             customer_id=customer_id,
+#             subtotal=subtotal,
+#             vat_amount=vat_amount,
+#             total=total
+#         )
+#         session.add(invoice)
+#         session.flush()
+#         
+#         # Add items
+#         for item_data in items:
+#             item = InvoiceItem(
+#                 invoice_id=invoice.id,
+#                 description=item_data['description'],
+#                 quantity=item_data['quantity'],
+#                 unit_price=item_data['unit_price'],
+#                 vat_rate=19.0
+#             )
+#             session.add(item)
+#         
+#         session.commit()
+#         return invoice
+#     except Exception as e:
+#         session.rollback()
+#         raise e
+#     finally:
+#         session.close()
+
+# def get_invoice(invoice_id):
+#     session = get_session()
+#     invoice = session.query(Invoice)\
+#         .options(sqlalchemy.orm.joinedload(Invoice.issuer))\
+#         .options(sqlalchemy.orm.joinedload(Invoice.customer))\
+#         .options(sqlalchemy.orm.joinedload(Invoice.items))\
+#         .filter(Invoice.id == invoice_id)\
+#         .first()
+#     session.close()
+#     return invoice
+# 
+# def get_invoices(customer_id=None, start_date=None, end_date=None):
+#     session = get_session()
+#     query = session.query(Invoice)
+#     
+#     if customer_id:
+#         query = query.filter(Invoice.customer_id == customer_id)
+#     if start_date:
+#         query = query.filter(Invoice.date >= start_date)
+#     if end_date:
+#         query = query.filter(Invoice.date <= end_date)
+#     
+#     invoices = query.order_by(Invoice.date.desc()).all()
+#     session.close()
+#     return invoices 

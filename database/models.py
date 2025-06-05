@@ -19,13 +19,15 @@ def init_db():
     Base.metadata.create_all(engine)
 
 class MeasureUnit(enum.Enum):
-    PIECE = "piece"
-    METER = "meter"
-    CENTIMETER = "centimeter"
-    SQUARE_METER = "square_meter"
-    SQUARE_CENTIMETER = "square_centimeter"
-    ROLL = "roll"
-    SHEET = "sheet"
+    PIECE = "Bucata"
+    METER = "Metru"
+    CENTIMETER = "Centimetru"
+    SQUARE_METER = "Metru patrat"
+    SQUARE_CENTIMETER = "Centimetru patrat"
+    ROLL = "Rola"
+    SHEET = "Coala"
+    TOP = "Top"
+    LITER = "Litru"
 
 class Category(Base):
     __tablename__ = 'categories'
